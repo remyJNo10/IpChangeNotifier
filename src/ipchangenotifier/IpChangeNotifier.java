@@ -71,7 +71,7 @@ public class IpChangeNotifier {
         FileWriter fwr = new FileWriter("ipcheck");
         fwr.write(currentip);
         fwr.close();
-        Thread.sleep(10000);
+        Thread.sleep(300000);
         while (true){
             try{
                 p = r.exec("wget http://ipinfo.io/ip -qO -");
@@ -79,7 +79,7 @@ public class IpChangeNotifier {
                 reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
                 currentip = reader.readLine();
                 if (currentip == null){
-                    Thread.sleep(10000);
+                    Thread.sleep(300000);
                     continue;
                 }
                 BufferedReader fre = new BufferedReader(new FileReader("ipcheck"));
@@ -101,10 +101,10 @@ public class IpChangeNotifier {
                     fwr.write(currentip);
                     fwr.close();
                 }
-                Thread.sleep(10000);
+                Thread.sleep(300000);
             } catch(NullPointerException ex){
                 Logger.getLogger(IpChangeNotifier.class.getName()).log(Level.SEVERE, null, ex);
-                Thread.sleep(10000);
+                Thread.sleep(300000);
             }
         }
         
