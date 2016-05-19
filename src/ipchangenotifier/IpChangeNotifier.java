@@ -33,7 +33,7 @@ public class IpChangeNotifier {
         String toaddress = YOUR_EMAIL_ID;
         String fromaddress = YOUR_EMAIL_ID;
         final String username = YOUR_EMAIL_USERNAME;
-        final String password = YOUR_EMAIL_PASSOWORD;
+        final String password = YOUR_EMAIL_PASSOWORDs;
         String host = "smtp.gmail.com";
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
