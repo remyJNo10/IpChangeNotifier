@@ -13,6 +13,7 @@ import java.net.URLConnection;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.net.MalformedURLException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,13 +30,15 @@ public class IpChangeNotifier {
      * @param args the command line arguments
      * @throws java.io.IOException
      * @throws java.lang.InterruptedException
+     * @throws java.net.SocketException
+     * @throws java.net.UnknownHostException
      */
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) throws IOException, InterruptedException, java.net.SocketException, java.net.UnknownHostException {
         // TODO code application logic here
-        String toaddress = YOUR_EMAIL_ID;
-        String fromaddress = YOUR_EMAIL_ID;
+        String toaddress = YOUR_EMAIL_ADDRESS;
+        String fromaddress = YOUR_EMAIL_ADDRESS;
         final String username = YOUR_EMAIL_USERNAME;
-        final String password = YOUR_EMAIL_PASSOWORDs;
+        final String password = YOUR_EMAIL_PASSWORD;
         String host = "smtp.gmail.com";
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
@@ -54,31 +57,33 @@ public class IpChangeNotifier {
         Process p;
         File ipfile = new File("ipcheck");
         ipfile.createNewFile();
-        r = Runtime.getRuntime();
-        p = r.exec("wget http://ipinfo.io/ip -qO -");
-        p.waitFor();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-        String currentip = reader.readLine();
-        try{
-            Message message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(fromaddress));
-            message.addRecipient(Message.RecipientType.TO, new InternetAddress(toaddress));
-            message.setSubject("IP Change Notification");
-            message.setText("Your computer has been turned on with IP " + currentip);
-            Transport.send(message);
-            System.out.println("Message sent successfully");
-        } catch (MessagingException ex) {
-            Logger.getLogger(IpChangeNotifier.class.getName()).log(Level.SEVERE, null, ex);
+        String currentip = "";
+        FileWriter fwr;
+        while(currentip.isEmpty()){
+            try{
+                currentip = getTextFromURL("http://checkip.amazonaws.com");
+                System.out.println("currentip" + currentip);
+                Message message = new MimeMessage(session);
+                message.setFrom(new InternetAddress(fromaddress));
+                message.addRecipient(Message.RecipientType.TO, new InternetAddress(toaddress));
+                message.setSubject("IP Change Notification");
+                message.setText("Your computer has been turned on with IP " + currentip);
+                Transport.send(message);
+                System.out.println("Message sent successfully");           
+                fwr = new FileWriter("ipcheck");
+                fwr.write(currentip);
+                fwr.close();
+                Thread.sleep(10000);
+            } catch (MessagingException | java.net.UnknownHostException ex) {
+                Logger.getLogger(IpChangeNotifier.class.getName()).log(Level.SEVERE, null, ex);
+                Thread.sleep(10000);
+            }
         }
-        FileWriter fwr = new FileWriter("ipcheck");
-        fwr.write(currentip);
-        fwr.close();
-        Thread.sleep(300000);
         while (true){
             try{
-                currentip = getTextFromURL("http://checkip.amazonaws.com")
+                currentip = getTextFromURL("http://checkip.amazonaws.com");
                 if (currentip == null){
-                    Thread.sleep(300000);
+                    Thread.sleep(10000);
                     continue;
                 }
                 BufferedReader fre = new BufferedReader(new FileReader("ipcheck"));
@@ -100,10 +105,10 @@ public class IpChangeNotifier {
                     fwr.write(currentip);
                     fwr.close();
                 }
-                Thread.sleep(300000);
-            } catch(NullPointerException ex){
+                Thread.sleep(10000);
+            } catch(NullPointerException | java.net.SocketException ex){
                 Logger.getLogger(IpChangeNotifier.class.getName()).log(Level.SEVERE, null, ex);
-                Thread.sleep(300000);
+                Thread.sleep(10000);
             }
         }
         
@@ -113,9 +118,11 @@ public class IpChangeNotifier {
 	 * 
 	 * @param url Address to get text from
 	 * @return Page content
-	 * @throws Exception (Various URL Exceptions)
+         * @throws java.net.SocketException
+         * @throws java.net.MalformedURLException
+         * @throws java.net.UnknownHostException
 	 */
-	public static String getTextFromURL(String url) throws Exception {
+	public static String getTextFromURL(String url) throws java.net.SocketException, MalformedURLException, java.net.UnknownHostException, IOException {
         URL website = new URL(url);
         URLConnection connection = website.openConnection();
         BufferedReader in = new BufferedReader(
