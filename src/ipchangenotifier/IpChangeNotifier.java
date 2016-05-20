@@ -8,6 +8,8 @@ package ipchangenotifier;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -22,7 +24,7 @@ import javax.mail.internet.*;
  * @author netizen
  */
 public class IpChangeNotifier {
-
+	
     /**
      * @param args the command line arguments
      * @throws java.io.IOException
@@ -74,10 +76,7 @@ public class IpChangeNotifier {
         Thread.sleep(300000);
         while (true){
             try{
-                p = r.exec("wget http://ipinfo.io/ip -qO -");
-                p.waitFor();
-                reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-                currentip = reader.readLine();
+                currentip = getTextFromURL("http://checkip.amazonaws.com")
                 if (currentip == null){
                     Thread.sleep(300000);
                     continue;
@@ -108,6 +107,30 @@ public class IpChangeNotifier {
             }
         }
         
+    }
+    
+	/**
+	 * 
+	 * @param url Address to get text from
+	 * @return Page content
+	 * @throws Exception (Various URL Exceptions)
+	 */
+	public static String getTextFromURL(String url) throws Exception {
+        URL website = new URL(url);
+        URLConnection connection = website.openConnection();
+        BufferedReader in = new BufferedReader(
+                                new InputStreamReader(
+                                    connection.getInputStream()));
+
+        StringBuilder response = new StringBuilder();
+        String inputLine;
+
+        while ((inputLine = in.readLine()) != null) 
+            response.append(inputLine);
+
+        in.close();
+
+        return response.toString();
     }
     
 }
